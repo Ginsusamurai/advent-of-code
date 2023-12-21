@@ -20,6 +20,7 @@ const makeCardStrengths = () => {
     return items
 }
 
+
 const HandRankings = [
     {'pattern': [5], 'rank': 7, 'name': 'Five of a kind'},
     {'pattern': [4,1], 'rank': 6 , 'name': 'Four of a kind'},
