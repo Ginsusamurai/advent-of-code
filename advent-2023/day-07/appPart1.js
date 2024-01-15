@@ -21,6 +21,14 @@ const makeCardStrengths1 = () => {
     return items
 }
 
+const makeCardStrengths2 = () => {
+    const items = {}
+    for(const [ind,val] of 'J23456789TQKA'.split('').entries()){
+        items[val] = ind
+    }
+    return items
+}
+
 
 const HandRankings = [
     {'pattern': [5], 'rank': 7, 'name': 'Five of a kind'},
