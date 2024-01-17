@@ -11,11 +11,20 @@ import fs from "fs"
 // 5. sort within respective groups
 // 6. combine the sorted group in to 1 big sort and assign ranks (start at index 0 for lowest, multiply bid by ind+1, total that)
 
-
-const makeCardStrengths = () => {
+// AKQJT98765432
+// 23456789TJQKA
+const makeCardStrengths1 = () => {
     const items = {}
-    for(const [ind,val] of 'AKQJT98765432'.split('').entries()){
-        items[val] = 13 - ind
+    for(const [ind,val] of '23456789TJQKA'.split('').entries()){
+        items[val] = ind
+    }
+    return items
+}
+
+const makeCardStrengths2 = () => {
+    const items = {}
+    for(const [ind,val] of 'J23456789TQKA'.split('').entries()){
+        items[val] = ind
     }
     return items
 }
@@ -32,7 +41,6 @@ const HandRankings = [
 ]
 
 function counter(list){
-    // console.log(list.split(''))
     return list.split('').reduce((prev,curr) => {
         let obj = {...prev}
         obj[curr] = 1 + (prev[curr] || 0)
@@ -41,88 +49,249 @@ function counter(list){
     {})    
 }
 
-function compareHandToGuide(input){
-
-}
-
 function sortCardCounts(input) {
     let cardCounts = []
     for(let val in input){
-        // console.log(input[val])
         cardCounts.push(input[val])
     }
     return cardCounts.sort().reverse()
 }
 
 class dealtHand {
-    constructor(line){
+    constructor(line, strengths, jokerStrengths){
         [this.rawHand, this.bid] = line.split(' ')
         this.handType = this.getHandType(this.rawHand)
+        this.jokerHandType = this.getJokerHandType(this.rawHand)
+        this.cardStrengthOrder = this.translateCards(this.rawHand, strengths)
+        this.jokerStrengthOrder = this.translateCards(this.rawHand, jokerStrengths)
     }
+
+    getJokerHandType(cards){
+        let jCount = cards.split('').filter((x) => x == 'J').length
+        let temp = counter(cards)
+        delete temp.J
+        if(JSON.stringify(temp) == '{}'){
+            temp['J'] = 0
+        }
+
+        temp = sortCardCounts(temp)
+        temp[0] = temp[0] + 0 + jCount
+        for(let handRank of HandRankings){
+            if(handRank.pattern.toString() == temp.toString()){
+                return handRank
+            }
+        }
+    }
+
 
     getHandType(cards){
         let temp = counter(cards)
         temp = sortCardCounts(temp)
-        console.log(temp)
+        for(let handRank of HandRankings){
+            if(handRank.pattern.toString() == temp.toString()){
+                return handRank
+            }
+        }
+    }
+
+    translateCards(cards, strengths){
+        let cardRanks = []
+        for(let card of cards){
+            cardRanks.push(strengths[card])
+        }
+        return cardRanks
     }
 }
 
 
-// function processHands(input){
-//     const hands = []
-//     for(const line of input){
-//         const item = line.split(' ')
-//         const handObj = {
-//             'rawCards': item[0],
-//             'sortedCards': item[0].split('').sort().join(''),
-//             'bid': item[1],
-//             'handType': null
-//         }
-//         hands.push(handObj)
-//     }
-//     return hands
-//     // console.log(hands)
-// }
-
 function readInput(){
-    const inputText = fs.readFileSync("test1.txt", "utf8")
+    const inputText = fs.readFileSync("input1.txt", "utf8")
     const inputArray = []
     
     
     inputText.split(/\n/).forEach((line) => {
-        // console.log('line: ', line)
         inputArray.push(line)
     })
     return inputArray
+}
+
+function pushHandsToGroups(allHands, groups){
+    for(let hand of allHands){
+        switch(hand.handType.name.toLowerCase()){
+            case 'Five of a kind'.toLowerCase():
+                groups.fives.push(hand);
+                break;
+            case 'Four of a kind'.toLowerCase():
+                groups.fours.push(hand);
+                break;
+            case 'Full House'.toLowerCase():
+                groups.fulls.push(hand);
+                break;
+            case 'Three of a kind'.toLowerCase():
+                groups.threes.push(hand);
+                break;
+            case 'Two Pair'.toLowerCase():
+                groups.twoPairs.push(hand);
+                break;
+            case 'One pair'.toLowerCase():
+                groups.pairs.push(hand);
+                break;
+            case 'High Card'.toLowerCase():
+                groups.highCard.push(hand);
+                break;
+        }
+    }
+
+}
+
+function pushHandsToJokerGroups(allHands, groups){
+    for(let hand of allHands){
+        switch(hand.jokerHandType.name.toLowerCase()){
+            case 'Five of a kind'.toLowerCase():
+                groups.fives.push(hand);
+                break;
+            case 'Four of a kind'.toLowerCase():
+                groups.fours.push(hand);
+                break;
+            case 'Full House'.toLowerCase():
+                groups.fulls.push(hand);
+                break;
+            case 'Three of a kind'.toLowerCase():
+                groups.threes.push(hand);
+                break;
+            case 'Two Pair'.toLowerCase():
+                groups.twoPairs.push(hand);
+                break;
+            case 'One pair'.toLowerCase():
+                groups.pairs.push(hand);
+                break;
+            case 'High Card'.toLowerCase():
+                groups.highCard.push(hand);
+                break;
+        }
+    }
+
+}
+
+
+function sortGroups(groups){
+    for(let thing of Object.keys(groups)){
+
+        groups[thing].sort((a,b) => {
+            for(let i = 0; i <= a.cardStrengthOrder.length - 1; i+=1){
+                if((a.cardStrengthOrder[i] - b.cardStrengthOrder[i]) >= 1){
+                    return 1
+                }
+                if((a.cardStrengthOrder[i] - b.cardStrengthOrder[i]) <= -1){
+                    return -1
+                }
+            }
+                return 0})
+        }
+
+}
+
+function sortJokerGroups(groups){
+    for(let thing of Object.keys(groups)){
+        groups[thing].sort((a,b) => {
+            for(let i = 0; i <= a.jokerStrengthOrder.length - 1; i+=1){
+                if((a.jokerStrengthOrder[i] - b.jokerStrengthOrder[i]) >= 1){
+                    return 1
+                }
+                if((a.jokerStrengthOrder[i] - b.jokerStrengthOrder[i]) <= -1){
+                    return -1
+                }
+            }
+                return 0})
+        }
+
+}
+
+
+function bubSortGroups(cardGroups){
+    for( let group of Object.keys(cardGroups)){
+        bubbleSort(cardGroups[group])
+    }    
+}
+
+
+function bubbleSort(inputArr){
+    let len = inputArr.length;
+    for (let i = 0; i < len; i++) {
+        for (let j = 0; j < len; j++) {
+            if (inputArr[j] > inputArr[j + 1]) {
+                let tmp = inputArr[j];
+                inputArr[j] = inputArr[j + 1];
+                inputArr[j + 1] = tmp;
+            }
+        }
+    }
+    return inputArr;
+}
+
+function combineGroups(groups){
+    let returnal = []
+    returnal = returnal.concat(groups.highCard,groups.pairs,groups.twoPairs,groups.threes,groups.fulls,groups.fours,groups.fives)
+    return returnal
+}
+
+function computeScore(finalGroups){
+    let total = 0
+    for(let i = 0; i < finalGroups.length; i += 1){
+        let bid = parseInt(finalGroups[i].bid)
+        let rank = i+1
+        let val = bid * rank
+        total += val
+    }
+    return total
 }
 
 function main(){
     const input = readInput()
 
 
-    const fives = []
-    const fours = []
-    const fulls = []
-    const threes = []
-    const twopairs = []
-    const pairs = []
-    const highcard = []
-
-    const misc = []
-    for(let hand of input){
-        misc.push(new dealtHand(hand))
+    const cardGroups = {
+        'fives': [],
+        'fours': [],
+        'fulls': [],
+        'threes': [],
+        'twoPairs': [],
+        'pairs': [],
+        'highCard': []
     }
 
-    // const hands = processHands(input)
-    let cardStrenghts = makeCardStrengths()
-    // const rankRef = makeCardSortTable(cardOrder)
-    // const handRef = makeHandSortTable(handOrder)
-    // const handTypeSort = sortHandsByType(hands, handRef)
-    console.log(misc)
+    const jokerCardGroups = {
+        'fives': [],
+        'fours': [],
+        'fulls': [],
+        'threes': [],
+        'twoPairs': [],
+        'pairs': [],
+        'highCard': []
+    }
+
+    let cardStrengths = makeCardStrengths1()
+    let jokerStrengths = makeCardStrengths2()
+
+    const builtHands = []
+    for(let hand of input){
+        builtHands.push(new dealtHand(hand, cardStrengths, jokerStrengths))
+    }
+
+    pushHandsToGroups(builtHands, cardGroups)
+    pushHandsToJokerGroups(builtHands, jokerCardGroups)
+    sortGroups(cardGroups)
+    sortJokerGroups(jokerCardGroups)
+    let finalGroups = combineGroups(cardGroups)
+    let finalGroups2 = combineGroups(jokerCardGroups)
+    let score = computeScore(finalGroups)
+    let score2 = computeScore(finalGroups2)
+    console.log(score)
+    console.log(score2)
 }
 
 
 let start = Date.now()
 main()
 let timeTaken = Date.now() - start;
-// console.log(`This ran in ${timeTaken} miliseconds`)
+console.log(`This ran in ${timeTaken} miliseconds`)
