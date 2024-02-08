@@ -2,13 +2,6 @@
 import { match } from "assert"
 import fs from "fs"
 
-
-
-
-
-
-
-
 function readInput(){
     const inputText = fs.readFileSync("input.txt", "utf8")
     const inputArray = []
