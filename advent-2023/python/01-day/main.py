@@ -1,6 +1,7 @@
 import re
 import time
 
+
 def part1(data):
     list1 = []
     # get all numbers as array
@@ -13,8 +14,8 @@ def part1(data):
         z = x[0] + x[-1]
         list1.append(int(z))
     # print(list1)
-    print(f'Part1: {sum(list1)}')
-
+    # print(f'{sum(list1)}')
+    return sum(list1)
 
 
 def readInFile(fName):
@@ -22,6 +23,7 @@ def readInFile(fName):
         # split inputs to rows
         f = f.read().split('\n')
         return f
+
 
 def part2(data):
     # print(data)
@@ -36,18 +38,17 @@ def part2(data):
         x = re.sub(r'eight', 'eight8eight', x)
         x = re.sub(r'nine', 'nine9nine', x)
         data[row[0]] = x
-    
     # print(data)
     return part1(data)
 
 
 if __name__ == '__main__':
     start_time = time.time()
-    textInput = readInFile(fName='problem')
+    textInput = readInFile(fName='input')
     # print(textInput)
-    part1(textInput)
+    print(f"Part1: {part1(textInput)}")
     print(f"--- {(time.time() - start_time)*1000} ms")
     start_time = time.time()
-    textInput = readInFile(fName='problem')
-    part2(textInput)
+    # textInput = readInFile(fName='input')
+    print(f"part2: {part2(textInput)}")
     print(f"--- {(time.time() - start_time)*1000} ms")
