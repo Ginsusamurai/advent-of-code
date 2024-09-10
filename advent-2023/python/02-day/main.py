@@ -1,6 +1,7 @@
 import time
 import re
 
+
 class Game:
     viableGame = None
     gameNumber = None
@@ -11,83 +12,72 @@ class Game:
     minBlue = 0
     minGreen = 0
 
-    def __init__(self, gameInput):
-        print(gameInput)
+    def __init__(self, gameInput, limit):
+        # print(gameInput)
         self.gameNumber = self.findNumber(gameInput)
-        # redsList = self.findReds(gameInput)
-        # bluesList = self.findBlues(gameInput)
-        # greensList = self.findGreens(gameInput)
+        self.redsList = self.findReds(gameInput)
+        self.bluesList = self.findBlues(gameInput)
+        self.greensList = self.findGreens(gameInput)
+        self.minRed = max(self.redsList)
+        self.minBlue = max(self.bluesList)
+        self.minGreen = max(self.greensList)
+        self.viableGame = self.checkViable(limit)
     
-    def findNumber(self, input):
-        x = re.search(r'Game (\d*)', input)
+    def findNumber(self, data):
+        x = re.search(r'Game (\d*)', data)
         return int(x[1])
 
-    def redsList(self,input):
-        x = re.search
+    def findReds(self, data):
+        x = re.findall(r'(\d*) red', data)
+        x = [int(i) for i in x]
+        x.sort(reverse=True)
+        return x
 
+    def findBlues(self, data):
+        x = re.findall(r'(\d*) blue', data)
+        x = [int(i) for i in x]
+        x.sort(reverse=True)
+        return x
+    
+    def findGreens(self, data):
+        x = re.findall(r'(\d*) green', data)
+        x = [int(i) for i in x]
+        x.sort(reverse=True)
+        return x
 
-    # def findReds(input):
+    def checkViable(self, limit):
+        # print(limit)
+        if self.redsList[0] > limit['red']:
+            return False
+        if self.bluesList[0] > limit['blue']:
+            return False
+        if self.greensList[0] > limit['green']:
+            return False
+        return True
+    
 
-
-
-
-
-# def part2(data):    
-    # reds = re.findall(r'(\d)* red', games[1])
-    # reds = [int(i) for i in reds]
-    # blues = re.findall(r'(\d)* blue', games[1])
-    # blues = [int(i) for i in blues]
-    # greens = re.findall(r'(\d*) green', games[1])
-    # greens = [int(i) for i in greens]
-    # print(f"game {gameNum[1]}")
-    # print(f"reds:  {reds} ,  viable num:  {max(reds)}")
-    # print(f"blues: {blues},  viable blue: {max(blues)}")
-    # print(f"greens:{greens}, viable green:{max(greens)}")
-
-
-def part1(data, restrictions):
+def part1(data, limit):
     # print(data)
     # print(restrictions)
     masterGameList = []
     for game in data:
-        x = Game(game)
-        # print(x)
-        # stats = {'viable': None}
-        # gameNum = re.search(r'Game (\d*)', game)
-        # stats.gameNum = gameNum
-        # # print(gameNum[1])
-        # games = game.split(": ")
-        # print(games)
-        # gamesList = games[1].split(';')
-        # print(gamesList)
-        # reds = re.findall(r'(\d)* red', games[1])
-        # # reds = [int(i) for i in reds]
-        # stats.reds = []
-        # for i in reds:
-        #     if (i > restrictions.red):
-        #         stats.viable = False
-        #         break
-        #     stats.reds.append(int(i))
-        # blues = re.findall(r'(\d)* blue', games[1])
-        # # blues = [int(i) for i in blues]
-        # stats.blues = []
-        # for i in blues:
-        #     if (i > restrictions.blue):
-        #         stats.viable = False
-        #         break
-        #     stats.blues.append(int(i))
-        # greens = re.findall(r'(\d*) green', games[1])
-        # # greens = [int(i) for i in greens]
-        # print(f"game {gameNum[1]}")
-        # print(f"reds:  {reds} ,  viable num:  {max(reds)}")
-        # print(f"blues: {blues},  viable blue: {max(blues)}")
-        # print(f"greens:{greens}, viable green:{max(greens)}")
-        
-# split games on semi colon
-# track the "minimum viable" count of each color
-# get all possible options of a color, if unviable game, break early, list as "non viable"
-# if going through the entire set you don't hit bad game, marke "viable"
+        masterGameList.append(Game(game, limit))
+    total = 0
+    for narp in masterGameList:
+        if narp.viableGame:
+            total += narp.gameNumber
+    return total
 
+
+def part2(data, limit):
+    masterGameList = []
+    for game in data:
+        masterGameList.append(Game(game, limit))
+    total = 0
+    for narp in masterGameList:
+        x = narp.redsList[0] * narp.bluesList[0] * narp.greensList[0]
+        total += x
+    return total
 
 
 def readInFile(fName):
@@ -99,12 +89,12 @@ def readInFile(fName):
 
 if __name__ == '__main__':
     start_time = time.time()
-    textInput = readInFile(fName='inputtest')
+    textInput = readInFile(fName='input')
     # print(textInput)
     restrictions = {'red': 12, 'green': 13, 'blue': 14}
     print(f"Part1: {part1(textInput, restrictions)}")
     print(f"--- {(time.time() - start_time)*1000} ms")
-    # start_time = time.time()
-    # # textInput = readInFile(fName='input')
-    # print(f"part2: {part2(textInput)}")
-    # print(f"--- {(time.time() - start_time)*1000} ms")
+    start_time = time.time()
+    # textInput = readInFile(fName='input')
+    print(f"part2: {part2(textInput, restrictions)}")
+    print(f"--- {(time.time() - start_time)*1000} ms")
